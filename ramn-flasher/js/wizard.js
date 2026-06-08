@@ -77,7 +77,7 @@ async function runUpdateFlash(opts) {
   setWizardStep('serial', 'active', 'Connecting to ECU A (serial)', 'Select your RAMN in the browser dialog…');
   await doConnectSerial();
   if (!serConnected) {
-    setWizardStep('serial', 'error', 'Connecting to ECU A (serial)', 'No port selected. Make sure RAMN is plugged in.');
+    setWizardStep('serial', 'error', 'Connecting to ECU A (serial)', 'No port selected. Make sure RAMN is plugged in and the port is not in use by another application.');
     // Suggest recovery mode in case ECU A is stuck in DFU from a previous failed flash
     const step = $('wizStep-serial');
     if (step) {
@@ -228,7 +228,7 @@ async function runNewBoardFlash(opts) {
   });
   if (!serConnected) {
     setWizardStep('serial', 'error', 'Connecting ECU A (serial)',
-      'No port selected. Make sure RAMN is plugged in and ECU A is running.');
+      'No port selected. Make sure RAMN is plugged in, ECU A is running, and the port is not in use by another application.');
     if (ecuAFlashed) showWizardCtfHint();
     wizEnableStartOver(); return;
   }

@@ -23,7 +23,7 @@ async function doTriggerDFU(){
     banner.style.display='';
     banner.style.color='var(--warning)';
     if(e.name==='NotFoundError'){
-      banner.textContent='No port selected — check RAMN is plugged in.';
+      banner.textContent='No port selected — make sure RAMN is plugged in and not in use by another application.';
     }else{
       banner.textContent='Could not open serial port — check RAMN is plugged in.';
       log(`Trigger failed: ${e.message}`,'log-err');

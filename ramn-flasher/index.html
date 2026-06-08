@@ -227,7 +227,7 @@
             </div>
             <button class="btn btn-ghost" id="btnConnectSer" onclick="serConnected?doDisconnectSerial():doConnectSerial()">Connect Serial</button>
           </div>
-          <div id="serConnectWarnMsg" style="display:none;margin-top:.6rem;font-size:.82rem;color:var(--warning)">No port selected — make sure ECU A has valid firmware and RAMN is plugged in.</div>
+          <div id="serConnectWarnMsg" style="display:none;margin-top:.6rem;font-size:.82rem;color:var(--warning)">No port selected — make sure RAMN is plugged in, ECU A has valid firmware, and the port is not in use by another application.</div>
         </div>
       </div>
       <div class="ecu-check-row">
@@ -490,10 +490,11 @@
       </div>
       <div id="contentBrowser" style="display:none">
         <h3>Browser Support</h3>
-        <p>This tool uses <strong>WebUSB</strong> (ECU A / DFU) and <strong>Web Serial</strong> (ECU B/C/D via CAN). These APIs are only available in:</p>
+        <p>This tool uses <strong>WebUSB</strong> (ECU A / DFU) and <strong>Web Serial</strong> (ECU B/C/D via CAN). These APIs are available in:</p>
         <ul style="margin:.5rem 0 0 1.25rem;line-height:1.9">
-          <li><strong>Chrome</strong> 89+</li>
-          <li><strong>Edge</strong> 89+</li>
+          <li><strong>Chrome</strong> 89+ (desktop: Windows, macOS, Linux)</li>
+          <li><strong>Edge</strong> 89+ (desktop)</li>
+          <li><strong>Chrome for Android</strong> — requires a USB OTG adapter</li>
         </ul>
         <p style="margin-top:.75rem">Firefox and Safari do not support these APIs.</p>
         <p style="margin-top:.5rem">The page must be served over <strong>HTTPS</strong> or <strong>localhost</strong>.</p>

@@ -22,7 +22,7 @@ if(!navigator.usb){
   log('WebUSB not available — ECU A (DFU) cannot be flashed','log-err');
   $('btnConnect').disabled=true;$('btnTriggerDFU').disabled=true;
   if(!navigator.serial){
-    setSt('Unsupported','WebUSB and Web Serial require Chrome or Edge 89+','err');
+    setSt('Unsupported','WebUSB and Web Serial require Chrome or Edge 89+ (or Chrome for Android with USB OTG)','err');
   }else{
     log('Web Serial available ✓','log-ok');
     setSt('Limited','ECU A (DFU) unavailable — ECU B/C/D ready','');
