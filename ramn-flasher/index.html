@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAMN Web Flasher</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══ MODE SELECTOR ═══════════════════════════════════════════════ -->
+<div id="modeSelector" class="ms-overlay">
+  <div class="ms-inner">
+    <div class="ms-logo">
+      <h1>⚡ RAMN Web Flasher</h1>
+      <p>How would you like to proceed?</p>
+    </div>
+    <div id="msWarning" class="ms-warning" style="display:none"></div>
+    <div class="ms-cards">
+
+      <button class="ms-card ms-card-primary" id="btnMsUpdate" onclick="switchMode('update')">
+        <div class="ms-card-badge">Recommended</div>
+        <div class="ms-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </div>
+        <div class="ms-card-title">Update RAMN</div>
+        <div class="ms-card-desc">Keep your board up to date. Fetches the latest firmware and flashes all ECUs automatically.</div>
+      </button>
+
+      <button class="ms-card" id="btnMsNewboard" onclick="switchMode('newboard')">
+        <div class="ms-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <!-- PCB board outline -->
+            <rect x="2" y="2" width="20" height="20" rx="2"/>
+            <!-- Corner mounting holes -->
+            <circle cx="5" cy="5" r="1"/>
+            <circle cx="19" cy="5" r="1"/>
+            <circle cx="5" cy="19" r="1"/>
+            <circle cx="19" cy="19" r="1"/>
+            <!-- Central IC -->
+            <rect x="8" y="8" width="8" height="8" rx="1"/>
+            <!-- Traces: left -->
+            <line x1="2" y1="10.5" x2="8" y2="10.5"/>
+            <line x1="2" y1="13.5" x2="8" y2="13.5"/>
+            <!-- Traces: right -->
+            <line x1="16" y1="10.5" x2="22" y2="10.5"/>
+            <line x1="16" y1="13.5" x2="22" y2="13.5"/>
+            <!-- Traces: top -->
+            <line x1="10.5" y1="2" x2="10.5" y2="8"/>
+            <line x1="13.5" y1="2" x2="13.5" y2="8"/>
+            <!-- Traces: bottom -->
+            <line x1="10.5" y1="16" x2="10.5" y2="22"/>
+            <line x1="13.5" y1="16" x2="13.5" y2="22"/>
+          </svg>
+        </div>
+        <div class="ms-card-title">First-Time Setup / Recovery</div>
+        <div class="ms-card-desc">Set up a freshly fabricated board, or recover from a failed flash. ECU A is expected to be in DFU mode.</div>
+      </button>
+
+      <button class="ms-card" onclick="switchMode('expert')">
+        <div class="ms-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+            <circle cx="8" cy="6" r="2" fill="var(--bg)"/><circle cx="16" cy="12" r="2" fill="var(--bg)"/><circle cx="10" cy="18" r="2" fill="var(--bg)"/>
+          </svg>
+        </div>
+        <div class="ms-card-title">Expert Mode</div>
+        <div class="ms-card-desc">Full manual control. Flash individual ECUs, load custom firmware, or use alternative builds.</div>
+      </button>
+
+    </div>
+    <div class="ms-footer">
+      Requires Chrome or Edge 89+. <a href="#" onclick="openModal('browser');return false">Why?</a>
+      &nbsp;·&nbsp; Unofficial tool — use at your own risk.
+      &nbsp;·&nbsp; RAMN firmware &copy; <a href="https://github.com/ToyotaInfoTech/RAMN?tab=License-1-ov-file#readme" target="_blank" rel="noopener">ToyotaInfoTech</a>
+      &nbsp;·&nbsp; <a href="https://github.com/leaukojo/ramn-flasher" target="_blank" rel="noopener">Source code</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EXPERT LAYOUT ════════════════════════════════════════════════ -->
+<div id="expertLayout" style="display:none;width:100%;max-width:1140px">
+
+  <div class="page-header">
+    <h1 class="page-logo">⚡ RAMN Web Flasher</h1>
+    <span class="page-mode">Expert Mode</span>
+    <a href="#" class="page-change" onclick="showModeSelector();return false">Change mode</a>
+  </div>
+
+  <div class="page-layout">
+  <div class="col-left">
+
+    <!-- Firmware Source — collapsible -->
+    <div class="card collapsible-card" id="fwFullCard">
+      <div class="collapsible-header card-title" onclick="toggleSection('fwFullCard')">
+        Select a Firmware <span class="chevron">▾</span>
+      </div>
+      <div class="collapsible-body">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+          <button class="btn btn-sm btn-primary" id="btnSrcGh"   onclick="setFwSource('gh')">GitHub branch</button>
+          <button class="btn btn-sm btn-ghost"   id="btnSrcRel"  onclick="setFwSource('rel')">Latest release</button>
+          <button class="btn btn-sm btn-ghost"   id="btnSrcFile" onclick="setFwSource('file')">Local folder</button>
+        </div>
+        <div id="fwGhPanel">
+          <select id="fwDirSelect" onchange="onDirChange()" class="select-input">
+            <option value="">Loading variants…</option>
+          </select>
+          <div id="fwDirPath" class="path-hint"></div>
+          <button class="btn btn-ghost" id="btnFetch" onclick="fetchFw()">Fetch firmware</button>
+          <span id="fetchStatus" class="fetch-status"></span>
+        </div>
+        <div id="fwRelPanel" style="display:none">
+          <div class="source-note">ToyotaInfoTech/RAMN · latest GitHub Release</div>
+          <button class="btn btn-ghost" id="btnFetchRel" onclick="fetchRelease()">Fetch release</button>
+          <span id="relStatus" class="fetch-status"></span>
+        </div>
+        <div id="fwFilePanel" style="display:none">
+          <div class="source-note">Select ECUA.bin/hex, ECUB/ECUB_LINEAR.hex, ECUC.hex, ECUD.hex</div>
+          <input type="file" id="canDirInput" multiple accept=".hex,.bin" class="file-input">
+        </div>
+        <div class="ecu-status-list">
+          <div class="ecu-row"><span class="ecu-label">ECU A</span><span class="ecu-status" id="fwStatusA">No firmware loaded</span></div>
+          <div class="ecu-row"><span class="ecu-label">ECU B</span><span class="ecu-status" id="fwStatusB">No firmware loaded</span></div>
+          <div class="ecu-row"><span class="ecu-label">ECU C</span><span class="ecu-status" id="fwStatusC">No firmware loaded</span></div>
+          <div class="ecu-row"><span class="ecu-label">ECU D</span><span class="ecu-status" id="fwStatusD">No firmware loaded</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- fwCompact: kept for JS compatibility, always hidden in expert mode -->
+    <div id="fwCompact" style="display:none"><span id="fwCompactLabel"></span></div>
+
+    <!-- ECU Target — collapsible -->
+    <div class="card collapsible-card" id="ecuTargetCard">
+      <div class="collapsible-header card-title" onclick="toggleSection('ecuTargetCard')">
+        ECU Target <span class="chevron">▾</span>
+      </div>
+      <div class="collapsible-body">
+        <div id="ecuPickerFull">
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="btn btn-ghost" id="btnEcuA"    onclick="setEcuTarget('A')">ECU A</button>
+            <button class="btn btn-ghost" id="btnEcuBCD"  onclick="setEcuTarget('BCD')">ECU B/C/D</button>
+            <button class="btn btn-primary" id="btnEcuBoth" onclick="setEcuTarget('both')">Both</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ecuPickerCard: kept for JS compatibility, always hidden in expert mode -->
+    <div id="ecuPickerCard" style="display:none"></div>
+
+    <!-- How to Flash — collapsible, hidden until ECU target chosen -->
+    <div class="card collapsible-card" id="howToCard" style="display:none">
+      <div class="collapsible-header card-title" onclick="toggleSection('howToCard')">
+        How to Flash <span class="chevron">▾</span>
+      </div>
+      <div class="collapsible-body">
+        <div id="howToA">
+          <div class="how-to-section">ECU A — DFU (USB)</div>
+          <ol class="how-to-steps">
+            <li>Fetch or load the firmware above.</li>
+            <li>If ECU A is running its app: click <b>Trigger DFU via Serial</b>, then <b>Connect</b>.<br>
+                If it is already in DFU mode: click <b>Connect</b> directly.</li>
+            <li>Click <b>Flash and Verify ECU A</b>.</li>
+          </ol>
+        </div>
+        <div id="howToBCD">
+          <div class="how-to-section">ECU B / C / D — CAN-FD bootloader</div>
+          <ol class="how-to-steps">
+            <li>Fetch or load the firmware above.</li>
+            <li>ECU A must be running its application (not in DFU mode) to act as CAN gateway.</li>
+            <li>Click <b>Connect Serial</b> and select ECU A's serial port.</li>
+            <li>Tick the ECUs to program, then click <b>Flash and Verify ECU B/C/D</b>.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ECU A Section — hidden until ECU target chosen -->
+    <div id="secA" style="display:none">
+      <div class="card collapsible-card" id="secACard">
+        <div class="collapsible-header card-title" onclick="toggleSection('secACard')">
+          ECU A — Device (DFU) <span class="chevron">▾</span>
+        </div>
+        <div class="collapsible-body">
+          <div class="device-row">
+            <div class="device-indicator" id="devIndicator"></div>
+            <div class="device-info">
+              <div class="device-name" id="devName">No device connected</div>
+              <div class="device-sub" id="devSub">—</div>
+            </div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-sm" id="btnTriggerDFU" onclick="doTriggerDFU()">Trigger DFU via Serial</button>
+              <button class="btn btn-ghost btn-hint" id="btnConnect" aria-label="Connect ECU A DFU device">Connect</button>
+            </div>
+          </div>
+          <div id="connectFailMsg" style="display:none;margin-top:.6rem;font-size:.82rem;color:var(--warning)">Could not connect — you must ask ECU A to enter DFU mode first.</div>
+          <div id="triggerBanner" style="display:none;margin-top:.75rem;font-size:.85rem;color:var(--accent2)"></div>
+          <div class="info-row" id="devInfo" style="display:none">
+            <div class="info-pill">xferSize: <span id="infoXfer">—</span></div>
+            <div class="info-pill">bcdDFU: <span id="infoBcd">—</span></div>
+            <div class="info-pill">bmAttr: <span id="infoAttr">—</span></div>
+            <div class="info-pill">alt: <span id="infoAlt">—</span></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-lg" id="btnFlash" disabled>Flash ECU A</button>
+      <button class="btn btn-primary btn-lg" id="btnFlashVerifyDFU" disabled style="margin-top:.5rem">Flash and Verify ECU A</button>
+    </div>
+
+    <!-- ECU B/C/D Section — hidden until ECU target chosen -->
+    <div id="secBCD" style="display:none">
+      <div class="section-divider">ECU B / C / D — CAN-FD Bootloader</div>
+      <div class="card collapsible-card" id="secBCDCard">
+        <div class="collapsible-header card-title" onclick="toggleSection('secBCDCard')">
+          Serial Connection (ECU A as CAN Gateway) <span class="chevron">▾</span>
+        </div>
+        <div class="collapsible-body">
+          <div class="device-row">
+            <div class="device-indicator" id="serIndicator"></div>
+            <div class="device-info">
+              <div class="device-name" id="serName">No serial port open</div>
+              <div class="device-sub" id="serSub">—</div>
+            </div>
+            <button class="btn btn-ghost" id="btnConnectSer" onclick="serConnected?doDisconnectSerial():doConnectSerial()">Connect Serial</button>
+          </div>
+          <div id="serConnectWarnMsg" style="display:none;margin-top:.6rem;font-size:.82rem;color:var(--warning)">No port selected — make sure ECU A has valid firmware and RAMN is plugged in.</div>
+        </div>
+      </div>
+      <div class="ecu-check-row">
+        <label class="ecu-check-label"><input type="checkbox" id="chkB" checked style="accent-color:var(--accent)"> ECU B</label>
+        <span id="chkBLogWrap" class="ecu-check-sub">
+          <label class="ecu-check-label ecu-check-muted"><input type="checkbox" id="chkBLog" checked style="accent-color:var(--accent)"> Logarithmic</label>
+          <span title="Uncheck if ECU A's screen does not show STEER 0% when the steering wheel is centered" style="cursor:help;color:var(--muted);font-size:.85rem">ⓘ</span>
+          <span id="chkBLogMsg" style="display:none;font-size:.8rem;color:var(--warning)">ECUB_LINEAR.hex not available — using ECUB.hex</span>
+        </span>
+        <label class="ecu-check-label"><input type="checkbox" id="chkC" checked style="accent-color:var(--accent)"> ECU C</label>
+        <label class="ecu-check-label"><input type="checkbox" id="chkD" checked style="accent-color:var(--accent)"> ECU D</label>
+      </div>
+      <button class="btn btn-ghost btn-lg" id="btnFlashCAN" disabled>Flash ECU B/C/D</button>
+      <button class="btn btn-ghost btn-lg" id="btnVerifyCAN" disabled style="margin-top:.5rem">Verify ECU B/C/D</button>
+      <button class="btn btn-primary btn-lg" id="btnFlashVerifyCAN" disabled style="margin-top:.5rem">Flash and Verify ECU B/C/D</button>
+      <label class="reset-label">
+        <input type="checkbox" id="chkReset" checked style="accent-color:var(--accent)">
+        Reset RAMN when done
+      </label>
+    </div>
+
+  </div><!-- end col-left -->
+
+  <div class="col-right">
+    <div class="status-bar" style="margin-bottom:1rem">
+      <div class="status-dot" id="statusDot"></div>
+      <div style="flex:1">
+        <div class="status-phase" id="statusPhase">Idle</div>
+        <div class="status-detail" id="statusDetail">Connect a device to begin</div>
+      </div>
+    </div>
+    <div class="progress-wrap" id="progressWrap" style="display:none;margin-bottom:1rem">
+      <div class="progress-label"><span id="progressLabel">…</span><span id="progressPct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div class="card-title" style="margin:0">Log</div>
+        <button class="btn btn-ghost" style="padding:.25rem .6rem;font-size:.75rem" onclick="clearLog()">Clear</button>
+      </div>
+      <div class="log-area" id="logArea"></div>
+    </div>
+  </div><!-- end col-right -->
+
+  </div><!-- end page-layout -->
+</div><!-- end expertLayout -->
+
+<!-- ══ WIZARD LAYOUT ════════════════════════════════════════════════ -->
+<div id="wizardLayout" style="display:none;width:100%;max-width:680px">
+
+  <div class="page-header">
+    <h1 class="page-logo">⚡ RAMN Web Flasher</h1>
+    <span class="page-mode" id="wizModeLabel"></span>
+    <a href="#" class="page-change" onclick="showModeSelector();return false">Change mode</a>
+  </div>
+
+  <!-- Setup: Update RAMN -->
+  <div id="wizSetupUpdate" class="wiz-setup">
+    <div class="card">
+      <div class="card-title">Firmware Source</div>
+      <div class="wiz-radio-group">
+        <label class="wiz-radio-option wiz-radio-selected" id="wiz-opt-gh">
+          <input type="radio" name="wizFwSource" value="gh" checked onchange="onWizSourceChange(this)">
+          <div class="wiz-radio-body">
+            <div class="wiz-radio-title">GitHub — latest <span class="wiz-badge">Recommended</span></div>
+            <div class="wiz-radio-desc">Most recent features. May occasionally have bugs.</div>
+          </div>
+        </label>
+        <label class="wiz-radio-option" id="wiz-opt-rel">
+          <input type="radio" name="wizFwSource" value="rel" onchange="onWizSourceChange(this)">
+          <div class="wiz-radio-body">
+            <div class="wiz-radio-title">Latest release — stable</div>
+            <div class="wiz-radio-desc">Use this if you encounter bugs with the GitHub version.</div>
+          </div>
+        </label>
+        <label class="wiz-radio-option" id="wiz-opt-file">
+          <input type="radio" name="wizFwSource" value="file" onchange="onWizSourceChange(this)">
+          <div class="wiz-radio-body">
+            <div class="wiz-radio-title">Custom / local file</div>
+            <div class="wiz-radio-desc">Load firmware files from your computer.</div>
+          </div>
+        </label>
+      </div>
+      <!-- GitHub advanced: variant selector (shown when GitHub source is selected) -->
+      <div id="wizGhAdvanced" class="wiz-advanced">
+        <button class="wiz-advanced-toggle" id="wizGhAdvBtn" onclick="toggleWizAdvanced()">Advanced ▾</button>
+        <div id="wizGhAdvBody" class="wiz-advanced-body" style="display:none">
+          <div class="source-note" style="margin-bottom:.4rem">Firmware variant (subdirectory on main branch):</div>
+          <select id="wizVariantSelect" class="select-input" onchange="onWizVariantChange()">
+            <option value="">Standard</option>
+          </select>
+        </div>
+      </div>
+      <!-- Custom file picker -->
+      <div id="wizFilePicker" style="display:none;margin-top:.75rem">
+        <button class="btn btn-ghost" onclick="$('canDirInput').click()">Browse files…</button>
+        <div class="source-note" style="margin-top:.4rem">Select ECUA.bin/hex, ECUB/ECUB_LINEAR.hex, ECUC.hex, ECUD.hex</div>
+        <div id="wizFileStatus" class="fetch-status" style="margin-top:.35rem"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Options</div>
+      <div class="wiz-opts-row">
+        <div class="wiz-opt-item" id="wizChkLogItem">
+          <label class="opt-label" style="font-size:.9rem">
+            <input type="checkbox" id="wizChkLog" checked style="accent-color:var(--accent)"> Logarithmic ECU B
+          </label>
+          <a href="#" class="help-link" onclick="openModal('ecuBType');return false">What is this?</a>
+        </div>
+        <label class="opt-label" style="font-size:.9rem">
+          <input type="checkbox" id="wizChkSkipVerify" style="accent-color:var(--accent)"> Skip verify <span style="font-size:.78rem;color:var(--muted)">(faster)</span>
+        </label>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-lg" id="btnWizFlashUpdate" onclick="startWizardFlash('update')">Flash All ECUs</button>
+    <div id="wizUpdateErr" style="display:none;margin-top:.6rem;font-size:.82rem;color:var(--warning)"></div>
+  </div>
+
+  <!-- Setup: First-Time Setup -->
+  <div id="wizSetupNewboard" class="wiz-setup" style="display:none">
+    <div class="card">
+      <div class="wiz-welcome">
+        <div class="wiz-welcome-title">First-Time Setup / Recovery</div>
+        <p class="wiz-welcome-text">This wizard flashes firmware to all four ECUs. Use this mode for a newly fabricated board, or to recover a board where ECU A is stuck in DFU mode.</p>
+        <p class="wiz-welcome-text" style="margin-top:.4rem">ECU A must be in DFU mode before you begin. If it is not, use the <b>Update RAMN</b> mode instead.</p>
+      </div>
+    </div>
+    <!-- Firmware source + options: same as update (reuse same DOM — wizard copies values before flash) -->
+    <div class="card">
+      <div class="card-title">Firmware Source</div>
+      <div class="wiz-radio-group">
+        <label class="wiz-radio-option wiz-radio-selected" id="wizNb-opt-gh">
+          <input type="radio" name="wizNbFwSource" value="gh" checked onchange="onWizNbSourceChange(this)">
+          <div class="wiz-radio-body">
+            <div class="wiz-radio-title">GitHub — latest <span class="wiz-badge">Recommended</span></div>
+            <div class="wiz-radio-desc">Most recent features.</div>
+          </div>
+        </label>
+        <label class="wiz-radio-option" id="wizNb-opt-rel">
+          <input type="radio" name="wizNbFwSource" value="rel" onchange="onWizNbSourceChange(this)">
+          <div class="wiz-radio-body">
+            <div class="wiz-radio-title">Latest release — stable</div>
+            <div class="wiz-radio-desc">Use if you have bugs with the GitHub version.</div>
+          </div>
+        </label>
+        <label class="wiz-radio-option" id="wizNb-opt-file">
+          <input type="radio" name="wizNbFwSource" value="file" onchange="onWizNbSourceChange(this)">
+          <div class="wiz-radio-body">
+            <div class="wiz-radio-title">Custom / local file</div>
+            <div class="wiz-radio-desc">Load firmware files from your computer.</div>
+          </div>
+        </label>
+      </div>
+      <div id="wizNbFilePicker" style="display:none;margin-top:.75rem">
+        <button class="btn btn-ghost" onclick="$('canDirInput').click()">Browse files…</button>
+        <div class="source-note" style="margin-top:.4rem">Select ECUA.bin/hex, ECUB/ECUB_LINEAR.hex, ECUC.hex, ECUD.hex</div>
+        <div id="wizNbFileStatus" class="fetch-status" style="margin-top:.35rem"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Options</div>
+      <div class="wiz-opts-row">
+        <div class="wiz-opt-item">
+          <label class="opt-label" style="font-size:.9rem">
+            <input type="checkbox" id="wizNbChkLog" checked style="accent-color:var(--accent)"> Logarithmic ECU B
+          </label>
+          <a href="#" class="help-link" onclick="openModal('ecuBType');return false">What is this?</a>
+        </div>
+        <label class="opt-label" style="font-size:.9rem">
+          <input type="checkbox" id="wizNbChkSkipVerify" style="accent-color:var(--accent)"> Skip verify <span style="font-size:.78rem;color:var(--muted)">(faster)</span>
+        </label>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-lg" id="btnWizFlashNewboard" onclick="startWizardFlash('newboard')">Set Up My RAMN Board</button>
+    <div id="wizNewboardErr" style="display:none;margin-top:.6rem;font-size:.82rem;color:var(--warning)"></div>
+  </div>
+
+  <!-- Flash Phase (shared between update + newboard, shown during flash) -->
+  <div id="wizFlashPhase" style="display:none">
+    <div class="card">
+      <div class="wiz-flash-title" id="wizFlashTitle">Flashing…</div>
+      <div class="wiz-steps" id="wizStepList" role="status" aria-live="polite"></div>
+      <div class="progress-wrap" id="wizProgressWrap" style="display:none;margin-top:1rem">
+        <div class="progress-label"><span id="wizProgressLabel">…</span><span id="wizProgressPct">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="wizProgressFill"></div></div>
+      </div>
+    </div>
+    <!-- Done state (hidden until flash completes) -->
+    <div id="wizDoneActions" style="display:none;margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1.25rem">
+      <div id="wizDoneMsg" class="wiz-done-msg"></div>
+      <!-- CTF links — shown only after a successful CTF flash -->
+      <div id="wizCtfDoneLinks" style="display:none;margin-bottom:1rem">
+        <div class="ctf-modal-links">
+          <a id="wizCtfPortalLink" href="#" target="_blank" rel="noopener" class="ctf-link-btn">🚩 Play this CTF — RAMN CTF Portal</a>
+          <a id="wizCtfResetLink" href="#" target="_blank" rel="noopener" class="ctf-link-btn ctf-link-btn-secondary">🔧 Post-CTF board reset tool</a>
+        </div>
+      </div>
+      <div class="wiz-done-btns">
+        <button class="btn btn-primary" onclick="$('wizDoneActions').style.display='none';showWizSetup(currentMode)">Flash again</button>
+        <button class="btn btn-ghost" onclick="switchMode('expert')">Open Expert Mode</button>
+      </div>
+    </div>
+
+    <div class="wiz-flash-footer">
+      <button class="btn btn-ghost btn-sm" onclick="toggleWizLog()" id="btnWizLog" aria-label="Toggle log output">Show log</button>
+      <button class="btn btn-ghost btn-sm" id="btnWizStartOver" onclick="wizStartOver()" disabled>Start over</button>
+    </div>
+    <div id="wizLogArea" style="display:none;margin-top:.5rem">
+      <div class="card" style="padding:.75rem">
+        <div class="log-area" id="wizLogAreaInner" style="height:200px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end wizardLayout -->
+
+<!-- ══ CTF CONFIRMATION MODAL ══════════════════════════════════════ -->
+<div id="ctfModal" class="modal-overlay" style="display:none">
+  <div class="modal-box ctf-modal-box" role="dialog" aria-modal="true">
+    <div class="modal-body">
+      <div class="ctf-modal-icon">🚩</div>
+      <h3 class="ctf-modal-title">Flashing CTF Firmware — <strong id="ctfModalName"></strong></h3>
+      <p>This is a CTF challenge firmware. A few things to know before you proceed:</p>
+      <ul class="ctf-modal-list">
+        <li>While CTF firmware is running, <strong>reflashing from this tool is not possible</strong>. Use the reset tool when you're done.</li>
+        <li>This is fully reversible — restore standard firmware any time using the <strong>post-CTF board reset tool</strong>.</li>
+      </ul>
+      <div class="ctf-modal-actions">
+        <button class="btn btn-ghost" id="ctfModalCancel">Cancel</button>
+        <button class="btn btn-primary" id="ctfModalConfirm">Flash CTF firmware</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HELP MODAL ══════════════════════════════════════════════════ -->
+<div id="helpModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tabEcuBType" onclick="switchTab('ecuBType')">ECU B Type</button>
+        <button class="modal-tab"        id="tabBrowser"  onclick="switchTab('browser')">Browser Support</button>
+      </div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="contentEcuBType">
+        <h3>Logarithmic vs Linear ECU B</h3>
+        <p>Default is <strong>Logarithmic</strong> — correct for most boards.</p>
+        <p style="margin-top:.75rem"><strong>How to check if you have the wrong type installed:</strong></p>
+        <ol style="margin:.5rem 0 0 1.25rem;line-height:1.9">
+          <li>Run the RAMN vehicle simulation.</li>
+          <li>Look at the ECU A display.</li>
+          <li>Center the steering wheel.</li>
+          <li>If STEER shows <strong>0%</strong>: the firmware is correct.</li>
+          <li>If STEER does <strong>not</strong> show 0%: re-flash ECU B with the other type.</li>
+        </ol>
+      </div>
+      <div id="contentBrowser" style="display:none">
+        <h3>Browser Support</h3>
+        <p>This tool uses <strong>WebUSB</strong> (ECU A / DFU) and <strong>Web Serial</strong> (ECU B/C/D via CAN). These APIs are only available in:</p>
+        <ul style="margin:.5rem 0 0 1.25rem;line-height:1.9">
+          <li><strong>Chrome</strong> 89+</li>
+          <li><strong>Edge</strong> 89+</li>
+        </ul>
+        <p style="margin-top:.75rem">Firefox and Safari do not support these APIs.</p>
+        <p style="margin-top:.5rem">The page must be served over <strong>HTTPS</strong> or <strong>localhost</strong>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <span>Unofficial tool — use at your own risk.</span>
+  <span>RAMN firmware &copy; <a href="https://github.com/ToyotaInfoTech/RAMN?tab=License-1-ov-file#readme" target="_blank" rel="noopener">ToyotaInfoTech</a>.</span>
+  <span>Built with Claude Sonnet 4.6 ·
+    <a href="https://github.com/leaukojo/ramn-flasher" target="_blank" rel="noopener">Source code</a></span>
+</footer>
+
+<script src="js/state.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/firmware.js"></script>
+<script src="js/dfu.js"></script>
+<script src="js/can.js"></script>
+<script src="js/main.js"></script>
+<script src="js/wizard.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
