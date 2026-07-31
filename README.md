@@ -6,7 +6,7 @@ A collection of automotive learning tools, simulations, and utilities for the RA
 
 ### SloppyCAN
 
-A browser-based CAN bus analysis tool focused on education and experimentation. No installation required.
+A browser-based CAN bus analysis tool focused on education and experimentation (no installation required).
 
 ➡️ [https://leaukojo.github.io/sloppycan/](https://leaukojo.github.io/sloppycan/)
 
