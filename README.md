@@ -14,7 +14,7 @@ A browser-based CAN bus analysis tool focused on education and experimentation (
 
 A Godot-powered simulation featuring a small interactive world and simulated vehicles. Designed to integrate with RAMN and SloppyCAN for hands-on automotive learning.
 
-➡️ [https://leaukojo.github.io/carlito_web/](https://leaukojo.github.io/carlito_web/)
+➡️ [https://leaukojo.github.io/carlito_web/](https://leaukojo.github.io/carlito/)
 
 ## RAMN Tools
 
