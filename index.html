@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaukojo · browser tools for learning CAN</title>
+<meta name="description" content="Browser-based automotive learning tools: SloppyCAN, Carlito, RAMN Flasher, RAMN CTF Replayer.">
+<style>
+  :root {
+    --bg: #000204; --panel: #070c11; --border: #11181f; --text: #c9d4de; --dim: #6b7a88;
+    --green: #37e07a; --amber: #ffb000; --cyan: #27d3e0; --blue: #5aa6f0;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--sans); }
+  main { max-width: 960px; margin: 0 auto; padding: 48px 20px 64px; }
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header h1 { font: 700 2.2rem var(--mono); margin: 0; color: var(--green); }
+  header h1::before { content: "> "; color: var(--dim); }
+  header p { color: var(--dim); margin: 6px 0 0; }
+  h2 { font: 600 .85rem var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--amber); margin: 44px 0 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .card:hover { border-color: #1d2a36; }
+  .card h3 { margin: 0 0 6px; font: 600 1.2rem var(--mono); color: #fff; }
+  .card p { margin: 0 0 14px; color: var(--dim); font-size: .95rem; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .btn { font: .85rem var(--mono); padding: 5px 12px; border: 1px solid var(--border); border-radius: 5px; color: var(--text); }
+  .btn.primary { border-color: var(--green); color: var(--green); }
+  .btn:hover { background: #0d151d; text-decoration: none; }
+  .links { font-size: .88rem; }
+  .links a { margin-right: 14px; white-space: nowrap; }
+  .tag { font: .7rem var(--mono); color: var(--amber); border: 1px solid #3a2a00; border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>leaukojo</h1>
+    <p>Automotive learning tools that run in your browser.</p>
+  </header>
+
+  <h2>Learn CAN</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>SloppyCAN</h3>
+      <p>A CAN learning tool that runs entirely in your web browser.</p>
+      <div class="btns">
+        <a class="btn primary" href="https://leaukojo.github.io/sloppycan/">Stable</a>
+        <a class="btn" href="https://leaukojo.github.io/sloppycan/dev/">Dev</a>
+      </div>
+      <div class="links">
+        <a href="https://leaukojo.github.io/sloppycan/explainers/">Explainers</a>
+        <a href="https://github.com/leaukojo/sloppycan">Source</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Carlito</h3>
+      <p>An ultra-lightweight, general-purpose vehicle simulator that runs in your web browser.</p>
+      <div class="btns">
+        <a class="btn primary" href="https://leaukojo.github.io/carlito/">Stable</a>
+        <a class="btn" href="https://leaukojo.github.io/carlito/dev/">Dev</a>
+      </div>
+      <div class="links">
+        <a href="https://leaukojo.github.io/carlito/guide/">Mechanics guide</a>
+        <a href="https://github.com/leaukojo/carlito">Source</a>
+      </div>
+    </div>
+    <div class="card">
+      <h3>RAMN Bridge <span class="tag">hardware</span></h3>
+      <p>Connect a physical RAMN board to Carlito.</p>
+      <div class="btns">
+        <a class="btn primary" href="https://leaukojo.github.io/sloppycan/carlito-bridge.html">Stable</a>
+        <a class="btn" href="https://leaukojo.github.io/sloppycan/dev/carlito-bridge.html">Dev</a>
+      </div>
+    </div>
+  </div>
+
+  <h2>RAMN tools</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>RAMN Flasher</h3>
+      <p>Flash all four RAMN ECUs straight from Chrome or Edge.</p>
+      <div class="btns"><a class="btn primary" href="https://leaukojo.github.io/ramn-flasher/">Open</a></div>
+      <div class="links"><a href="https://github.com/leaukojo/ramn-flasher">Source</a></div>
+    </div>
+    <div class="card">
+      <h3>RAMN CTF Replayer</h3>
+      <p>Replay past RAMN CTF challenges, with firmware flashing and write-ups.</p>
+      <div class="btns"><a class="btn primary" href="https://leaukojo.github.io/ramn-ctf-replayer/">Open</a></div>
+      <div class="links"><a href="https://github.com/leaukojo/ramn-ctf-replayer">Source</a></div>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>
